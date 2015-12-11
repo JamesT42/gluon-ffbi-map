@@ -1,0 +1,4 @@
+
+config settings
+	option community 'bielefeld'
+
