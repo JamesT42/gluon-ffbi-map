@@ -4,7 +4,7 @@
 
 print() {
 	local community="$(uci get -q freifunk.@settings[0].community 2> /dev/null)"
-	local version="$(cat /lib/gluon/release 2> /dev/null)"
+	local version="gluon-$(cat /lib/gluon/release 2> /dev/null)"
 	local name="$(uci get -q system.@system[0].hostname 2> /dev/null)"
 	local geo="$(uci get -q gluon-node-info.@location[0].latitude 2> /dev/null) $(uci get -q gluon-node-info.@location[0].longitude 2> /dev/null)"
 	local contact="$(uci get -q gluon-node-info.@owner[0].contact 2> /dev/null)"
