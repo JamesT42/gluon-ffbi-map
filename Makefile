@@ -12,7 +12,7 @@ define Package/gluon-ffbi-map
   SECTION:=gluon
   CATEGORY:=Gluon
   TITLE:=gluon-ffbi-map
-  DEPENDS:=+gluon-core
+  DEPENDS:=+gluon-core +micrond
 endef
 
 define Package/gluon-ffbi-map/description

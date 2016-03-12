@@ -14,7 +14,7 @@ print() {
 	[ -n "$geo" ] && echo -n "\"geo\" : \"$geo\", "
 	[ -n "$name" ] && echo -n "\"name\" : \"$name\", "
 	[ -n "$contact" ] && echo -n "\"contact\" : \"$contact\", "
-	[ -n "$version" ] && echo -n "\"firmware\" : \"ffbi-$version\", "
+	[ -n "$version" ] && echo -n "\"firmware\" : \"$version\", "
 	[ -n "$community" ] && echo -n "\"community\" : \"$community\", "
 
 	echo -n "\"links\" : ["
@@ -42,9 +42,10 @@ if [ "$1" = "-p" ]; then
 	content="$(print)"
 	if [ -n "$content" ]; then
 		#make sure alfred is running
-		pidof alfred > /dev/null || /etc/init.d/alfred start
+		pidof alfred > /dev/null || /etc/init.d/alfred restart
 
 		#publish content via alfred
+		echo "$content"
 		echo "$content" | alfred -s 64
 		echo "map published"
 	else

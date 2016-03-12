@@ -1,0 +1,2 @@
+#publish map data
+* * * * * /usr/sbin/print_map.sh -p
