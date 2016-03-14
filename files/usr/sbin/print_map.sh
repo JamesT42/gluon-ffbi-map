@@ -23,17 +23,20 @@ print_basic() {
 	local name="$(uci get -q system.@system[0].hostname 2> /dev/null)"
 	local longitude="$(uci get -q gluon-node-info.@location[0].longitude 2> /dev/null)"
 	local latitude="$(uci get -q gluon-node-info.@location[0].latitude 2> /dev/null)"
-	#local geo="$(uci get -q gluon-node-info.@location[0].latitude 2> /dev/null) $(uci get -q gluon-node-info.@location[0].longitude 2> /dev/null)"
+	local geo="$(uci get -q gluon-node-info.@location[0].latitude 2> /dev/null) $(uci get -q gluon-node-info.@location[0].longitude 2> /dev/null)"
 	local contact="$(uci get -q gluon-node-info.@owner[0].contact 2> /dev/null)"
 
-	echo -n "{"
-
-	#[ -n "$geo" ] && echo -n "\"geo\" : \"$geo\", "
+	[ -n "$geo" ] && echo -n "\"geo\" : \"$geo\", "
 	[ -n "$name" ] && echo -n "\"name\" : \"$name\", "
 	[ -n "$contact" ] && echo -n "\"contact\" : \"$contact\", "
 	[ -n "$version" ] && echo -n "\"firmware\" : \"$version\", "
 	[ -n "$community" ] && echo -n "\"community\" : \"$community\", "
 
+	if [ -n "$longitude" -a -n "$latitude" ]; then
+		echo -n "\"longitude\" : $longitude, "
+		echo -n "\"latitude\" : $latitude, "
+	fi
+	
 	echo -n "\"links\" : ["
 
 	printLink() { echo -n "{ \"smac\" : \"$(cat /sys/class/net/$3/address)\", \"dmac\" : \"$1\", \"qual\" : $2 }"; }
@@ -49,14 +52,17 @@ print_basic() {
 	echo -n '], '
 	mac=$(uci get -q network.bat0.macaddr)
 	cat /sys/kernel/debug/batman_adv/bat0/transtable_local 2> /dev/null | tr '\t/[]()' ' ' | awk -v mac=$mac 'BEGIN{ c=0; } { if($1 == "*" && $2 != mac && $4 ~ /^[.NW]+$/ && $5 < 300) c++;} END{ printf("\"clientcount\" : %d", c);}'
-	echo -n '}'
+
 }
 
 print_more() {
 	echo -n "\"loadavg\" : $(uptime | awk '{print($NF)}'), "
 	echo -n "\"uptime\" : $(cat /proc/uptime | awk '{print($1)}'), "
+	if test -r /tmp/sysinfo/model; then
 	echo -n "\"model\" : \"$(cat /tmp/sysinfo/model)\", "
-
+	else
+	echo -n "\"model\" : \"$(cat /proc/cpuinfo |grep -m 1 "model name"|cut -d' ' -f 4-)\", "
+	fi
 	print_basic
 }
 
@@ -64,7 +70,7 @@ print_all() {
 	echo -n "\"rootfs_usage\" : $(rootfs_usage), "
 	echo -n "\"memory_usage\" : $(memory_usage), "
 	echo -n "\"addresses\" : ["
-	ip -6 address show dev br-freifunk 2> /dev/null | tr '/' ' ' | awk 'BEGIN{i=0} /inet/ { if($2 !~ /^fe80/) { printf("%s\"%s\"", (i ? ", " : ""), $2); i=1; }}'
+	ip -6 address show dev br-client 2> /dev/null | tr '/' ' ' | awk 'BEGIN{i=0} /inet/ { if($2 !~ /^fe80/) { printf("%s\"%s\"", (i ? ", " : ""), $2); i=1; }}'
 	echo -n "], "
 
 	print_more
@@ -72,6 +78,7 @@ print_all() {
 
 print() {
 
+	echo -n "{"
 	print_all
 	echo -n '}'
 
